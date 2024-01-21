@@ -119,7 +119,7 @@ print("\n")
 
 
 # SECTION 1: MODEL DEFINITION
-# ---------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Define a simple linear model by subclassing nn.Module.
 # This model has a single linear layer with one input and one output.
 class SimpleLinearModel(nn.Module):
@@ -137,30 +137,55 @@ class SimpleLinearModel(nn.Module):
 
 
 # SECTION 2: TRAINING FUNCTION
-# ----------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Define the training function with early stopping and model checkpointing.
 # This function takes the model, loss function, optimizer, data loader, patience for early stopping,
 # and number of epochs as arguments.
 def train_model(model, criterion, optimizer, train_loader, patience=5, n_epochs=35):
+    # Initializes a variable best_loss to positive infinity. This variable will be used to keep track of the best
+    # (lowest) loss during training.
     best_loss = np.inf
+    # Initializes a counter variable patience_counter to 0. This variable will be used to monitor how many consecutive
+    # epochs the loss does not improve.
     patience_counter = 0
 
     for epoch in range(n_epochs):
+        # Sets the model to training mode. This is important for certain layers (e.g., dropout or batch normalization)
+        # that behave differently during training and evaluation.
         model.train()
+        # Initializes a variable running_loss to 0.0. This variable will accumulate the loss for each batch of training
+        # data during an epoch.
         running_loss = 0.0
 
         for inputs, targets in train_loader:
-            optimizer.zero_grad()  # Clear gradients from the previous step
-            outputs = model(inputs)  # Forward pass
-            loss = criterion(outputs, targets)  # Compute the loss
-            loss.backward()  # Backward pass
-            optimizer.step()  # Update weights
-            running_loss += loss.item()  # Accumulate the loss
-
+            # Clears the gradients from the previous step. Gradients are accumulated during the backward pass and need
+            # to be reset before computing gradients for the current batch.
+            optimizer.zero_grad()
+            # Performs a forward pass through the neural network model (model) with the current batch of input data
+            # (inputs) to obtain predictions.
+            outputs = model(inputs)
+            # Computes the loss between the model's predictions (outputs) and the actual target values (targets) using
+            # the specified loss function (criterion).
+            loss = criterion(outputs, targets)
+            # Performs a backward pass to compute gradients of the loss with respect to the model's parameters. These
+            # gradients will be used to update the model's weights.
+            loss.backward()
+            # Updates the model's weights using the optimization algorithm (optimizer) based on the computed gradients.
+            optimizer.step()
+            # Accumulates the loss for the current batch to running_loss.
+            running_loss += loss.item()
+        # Calculates the average loss for the current epoch by dividing the accumulated loss (running_loss) by the
+        # number of batches in the training data.
         epoch_loss = running_loss / len(train_loader)
+        # Prints the epoch number and the average loss for the current epoch.
         print(f'Epoch {epoch + 1}, Loss: {epoch_loss}')
 
         # Implement early stopping and model checkpointing
+        # Checks if the epoch_loss is less than the best_loss. If it is, it updates best_loss to the current epoch_loss,
+        # resets patience_counter to 0, and saves the model's state to a file named 'best_model.pth'. This is done to
+        # keep track of the best model encountered during training. If epoch_loss is not better than best_loss,
+        # patience_counter is incremented. If patience_counter exceeds the specified patience value, early stopping is
+        # triggered by breaking out of the training loop.
         if epoch_loss < best_loss:
             best_loss = epoch_loss
             patience_counter = 0
@@ -173,19 +198,38 @@ def train_model(model, criterion, optimizer, train_loader, patience=5, n_epochs=
 
 
 # SECTION 3: DATASET CREATION
-# ---------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Create a dataset using numpy arrays and convert them to PyTorch tensors.
 # This dataset is a simple linear relation for demonstration purposes.
 def create_dataset():
+    # Initializes a variable depth with the value 10000. This variable represents the depth of the dataset and is used
+    # to generate a range of training data.
     depth = 10000
+    # Creates a NumPy array training_range that contains a range of values from -depth to depth. This range represents
+    # the input values for the dataset.
     training_range = np.arange(-depth, depth)
+    # Initializes a variable offset with the value 7. This offset is added to the training_range to generate the
+    # corresponding target values.
     offset = 7
+    # Creates another NumPy array test_range by adding the offset to each element in the training_range. This generates
+    # the target values for the dataset.
     test_range = training_range + offset
-
+    # Reshapes the training_range array into a 2D array with a single column using .reshape(-1, 1). Then, it converts
+    # this reshaped array into a PyTorch tensor x_train with a data type of float32. x_train represents the input data
+    # for the dataset.
     x_train = tensor(training_range.reshape(-1, 1), dtype=float32)
+    # Reshapes the test_range array into a 2D array with a single column and converts it into a PyTorch tensor y_train
+    # with a data type of float32. y_train represents the target data for the dataset.
     y_train = tensor(test_range.reshape(-1, 1), dtype=float32)
-
+    # Combines the input data (x_train) and target data (y_train) into a PyTorch TensorDataset. This is a
+    # PyTorch-specific dataset format that pairs input and target tensors for training.
     train_dataset = TensorDataset(x_train, y_train)
+    # Creates a PyTorch DataLoader named train_loader using the train_dataset. This DataLoader is used to load the
+    # dataset in batches during training. It has the following properties:
+    #   * batch_size: Sets the batch size to 32, meaning that during training, the dataset will be divided into batches
+    #   of 32 samples each.
+    #   * shuffle=True: Shuffles the dataset before each epoch, ensuring that the order of data in each batch is random.
+    #   This helps improve training by reducing the risk of the model memorizing the order of the data.
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
     return train_loader
@@ -195,27 +239,44 @@ def create_dataset():
 # ------------------------
 # The main function orchestrates the model training and evaluation.
 def main():
+    # Calls the create_dataset function to generate a training dataset and assigns it to the variable train_loader.
+    # This DataLoader contains the training data in batches.
     train_loader = create_dataset()
+    # Initializes a neural network model named model using the SimpleLinearModel class. This model is a simple linear
+    # regression model with one input and one output.
     model = SimpleLinearModel()
+    # Initializes the loss function criterion to be Mean Squared Error (MSE) loss. MSE is commonly used for regression
+    # tasks, and it measures the average squared difference between predicted and actual values.
     criterion = nn.MSELoss()  # Mean Squared Error loss for regression tasks
+    # Initializes an Adam optimizer named optimizer for updating the model's parameters during training. It is
+    # configured to optimize the parameters of the model, and the learning rate (lr) is set to 0.01.
     optimizer = optim.Adam(model.parameters(), lr=0.01)  # Adam optimizer
-
+    # Calls the train_model function to train the model using the specified criterion, optimizer, and train_loader.
+    # This function trains the model and implements early stopping.
     train_model(model, criterion, optimizer, train_loader)
-
-    # Load the best model for prediction
+    # Loads the best-trained model's state dictionary from a file named 'best_model.pth' and assigns it to the model.
+    # This step is done to use the best model for predictions.
     model.load_state_dict(torch_load('best_model.pth'))
 
-    # Prediction
+    # Sets a value for the range of input values for prediction.
     predicted_depth = 100
+    # Generates a range of input values (base_x) from -predicted_depth to predicted_depth with a step of 10.
     base_x = np.arange(-predicted_depth, predicted_depth + 1, 10)
+    # Converts the base_x values into a PyTorch tensor (new_x_values) with a data type of float32. These values will be used for making predictions.
     new_x_values = tensor(base_x.reshape(-1, 1), dtype=float32)
+    # Sets the model to evaluation mode. This is important because some layers (e.g., dropout) behave differently during evaluation.
     model.eval()  # Set the model to evaluation mode
-    with no_grad():  # Disable gradient computation for inference
+    # Temporarily disables gradient computation for inference to save memory and computation time.
+    with no_grad():
+        # Uses the trained model to make predictions for the input values in new_x_values. The predicted values are stored in predicted_y.
         predicted_y = model(new_x_values)
 
+    # Prints the input values (base_x) and the corresponding predicted values (predicted_y) in a human-readable format.
+    # The flatten() function is used to convert the predicted values from a multi-dimensional array to a flat array.
     print("Predicted y for x =", base_x, ":", predicted_y.numpy().flatten())
 
-    # Save the final model
+    # Saves the final trained model's state dictionary to a file named '../models/exercise_1_model.pth'. This file can
+    # be used later for further use or deployment.
     torch_save(model.state_dict(), "../models/exercise_1_model.pth")
 
 
