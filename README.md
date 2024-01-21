@@ -22,6 +22,10 @@ PyTorch's GPU support includes a variety of hardware:
   * [Anaconda](https://anaconda.org/pytorch/pytorch)
   * [PyPI](https://pypi.org/project/torch/)
 
+# Courses:
+  * [Udemy: A deep understanding of deep learning (with Python intro)](https://www.udemy.com/course/deeplearning_x/)
+  * [ZTM: PyTorch for Deep Learning in 2024](https://zerotomastery.io/courses/learn-pytorch/)
+
 # Useful Links:
   * [PyTorch Tutorials](https://pytorch.org/)
   * [PyTorch Examples Repository](https://github.com/pytorch/examples)
