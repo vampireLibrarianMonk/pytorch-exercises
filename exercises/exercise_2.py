@@ -1,3 +1,21 @@
+# This line imports the 'check_output' function from the 'subprocess' module in Python. The 'subprocess' module
+# allows you to spawn new processes, connect to their input/output/error pipes, and obtain their return codes. This
+# module is intended to replace older modules and functions like os.system and os.spawn*.
+# Key aspects of 'check_output':
+# 1. **Process Execution**: The 'check_output' function is used to run a command in the subprocess/external process and
+#    capture its output. This is especially useful for running system commands and capturing their output directly
+#    within a Python script.
+# 2. **Return Output**: It returns the output of the command, making it available to the Python environment. If the
+#    called command results in an error (non-zero exit status), it raises a CalledProcessError.
+# 3. **Use Cases**: Common use cases include executing a shell command, reading the output of a command, automating
+#    scripts that interact with the command line, and integrating external tools into a Python workflow.
+
+# Example Usage:
+# Suppose you want to capture the output of the 'ls' command in a Unix/Linux system. You can use 'check_output' like
+# this:
+# output = check_output(['ls', '-l'])
+from subprocess import check_output
+
 # This line imports specific functionalities from the main PyTorch package. PyTorch is an open-source machine learning
 # library extensively used for deep learning applications. It offers a flexible and powerful platform for building and
 # training neural networks, with core support for multi-dimensional tensors and a wide range of mathematical operations.
@@ -42,21 +60,6 @@ from torchvision import datasets, transforms, __version__ as torchvision_version
 # rate during training, which can lead to more effective and faster training. StepLR decreases the learning rate at
 # specific intervals, which is helpful in fine-tuning the network as training progresses.
 from torch.optim.lr_scheduler import StepLR
-
-# Key aspects of 'check_output':
-# 1. **Process Execution**: The 'check_output' function is used to run a command in the subprocess/external process and
-#    capture its output. This is especially useful for running system commands and capturing their output directly
-#    within a Python script.
-# 2. **Return Output**: It returns the output of the command, making it available to the Python environment. If the
-#    called command results in an error (non-zero exit status), it raises a CalledProcessError.
-# 3. **Use Cases**: Common use cases include executing a shell command, reading the output of a command, automating
-#    scripts that interact with the command line, and integrating external tools into a Python workflow.
-
-# Example Usage:
-# Suppose you want to capture the output of the 'ls' command in a Unix/Linux system. You can use 'check_output' like
-# this:
-# output = check_output(['ls', '-l'])
-from subprocess import check_output
 
 
 # SECTION 1: MODEL DEFINITION
@@ -359,10 +362,6 @@ def create(device):
 # The main function orchestrates the model training and evaluation.
 def main():
     # SECTION 0: Version Prints
-    # This line imports the 'check_output' function from the 'subprocess' module in Python. The 'subprocess' module
-    # allows you to spawn new processes, connect to their input/output/error pipes, and obtain their return codes. This
-    # module is intended to replace older modules and functions like os.system and os.spawn*.
-
     print("Software Versions:")
 
     # CUDA
@@ -404,6 +403,29 @@ def main():
 
     # TorchVision
     print("\tTorchvision:", torchvision_version)
+
+    print("Hardware Found:")
+
+    # Check if CUDA is available
+    if cuda.is_available():
+        # Get the number of CUDA devices
+        num_devices = cuda.device_count()
+
+        print(f"\tNumber of CUDA devices available: {num_devices}")
+
+        # Loop through all available devices
+        for device_id in range(num_devices):
+            # Get the name of the device
+            device_name = cuda.get_device_name(device_id)
+            # Get the properties of the device
+            device_properties = cuda.get_device_properties(device_id)
+            # Extract the total memory of the device and convert bytes to GB
+            total_memory_gb = device_properties.total_memory / (1024 ** 3)
+
+            # Print device ID, device name, and total memory in GB
+            print(f"Device ID: {device_id}, Device Name: {device_name}, Total Memory: {total_memory_gb:.2f} GB")
+    else:
+        print("\tCUDA is not available. No devices to loop through.")
 
     print("\n")
 
