@@ -16,25 +16,23 @@
 # output = check_output(['ls', '-l'])
 from subprocess import check_output
 
+# PyTorch
 # This line imports specific functionalities from the main PyTorch package. PyTorch is an open-source machine learning
 # library extensively used for deep learning applications. It offers a flexible and powerful platform for building and
 # training neural networks, with core support for multi-dimensional tensors and a wide range of mathematical operations.
 
-# The specific components imported are:
-# 1. **cuda**: This module is used for all things related to CUDA, NVIDIA's parallel computing platform and API model.
-#    It allows for direct interaction with the GPU for efficient computation, especially beneficial for deep learning
-#    tasks.
-# 2. **device**: This function is utilized to set up the device on which to perform computations
-# (e.g., 'cuda' or 'cpu').
-#    Using 'device', one can write hardware-agnostic code that automatically utilizes GPUs if they're available.
-# 3. **flatten**: A function to flatten a tensor. It collapses a multi-dimensional tensor into a single dimension,
-#    often used in transitioning from convolutional layers to fully connected layers in a neural network.
-# 4. **no_grad**: This context manager is critical for inference or validation phases, where you do not want operations
-#    to track gradients. It reduces memory usage and speeds up computations.
-# 5. **__version__ as torch_version**: This imports the version identifier of the PyTorch library (aliased as
-#    'torch_version'). It's helpful for compatibility checks or when reporting issues.
-from torch import (cuda, device as torch_device, flatten, no_grad, version as torch_func_version,
-                   __version__ as torch_version)
+# cuda: Used for operations related to CUDA, NVIDIA's parallel computing platform, enabling efficient GPU computations.
+from torch import cuda
+
+# device: Function to specify the computation device (GPU or CPU), allowing for hardware-agnostic code.
+from torch import device as torch_device
+
+# no_grad: This context manager is critical for inference or validation phases, where you do not want operations to
+# track gradients. It reduces memory usage and speeds up computations.
+from torch import no_grad
+
+# version: Provides access to the version of the PyTorch being used, useful for compatibility and debugging purposes.
+from torch import version as torch_func_version
 
 # This line imports the nn module from PyTorch, aliased as nn. The nn module provides a way of defining a neural
 # network. It includes all the building blocks required to create a neural network, such as layers, activation
@@ -358,7 +356,7 @@ def create(device):
 
 
 # SECTION 5: MAIN FUNCTION
-# ------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # The main function orchestrates the model training and evaluation.
 def main():
     # SECTION 0: Version Prints

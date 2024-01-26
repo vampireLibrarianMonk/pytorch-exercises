@@ -107,9 +107,9 @@ from torchtext.vocab import vocab as torch_text_vocab
 # downloading data sets, pre-trained models, or other resources required by a project from the internet.
 from urllib.request import urlretrieve
 
+
 # Define a class named SarcasmDataset, which is a subclass of PyTorch's Dataset class.
 # This custom dataset class is used to handle sarcasm data (sentences and labels).
-
 
 # In Python, the use of double underscores (also known as "dunder" or "magic" methods) before and after the names of
 # certain methods, serves a specific purpose. These methods are part of Python's protocol for built-in behaviors and
@@ -119,7 +119,7 @@ class SarcasmDataset(Dataset):
     # The constructor method initializes the dataset object with sentences and their corresponding labels.
     def __init__(self, sentences, labels):
         self.sentences = sentences  # Store the provided sentences in the instance variable.
-        self.labels = labels        # Store the provided labels in the instance variable.
+        self.labels = labels  # Store the provided labels in the instance variable.
 
     # The __len__ method returns the number of items in the dataset.
     # It's a required method for the Dataset class, allowing PyTorch to know the dataset size.
@@ -381,39 +381,67 @@ def train_model(model, train_loader, val_loader, device, epochs=10):
         print(f'Accuracy after epoch {epoch + 1}: {100 * correct / total}%')
 
 
+# Define the function create_model with a parameter for specifying the computation device (e.g., CPU or GPU).
 def create_model(input_device):
+    # URL pointing to the sarcasm dataset.
     url = 'https://storage.googleapis.com/download.tensorflow.org/data/sarcasm.json'
+
+    # Download the dataset and save it locally as 'sarcasm.json'.
     urlretrieve(url, 'sarcasm.json')
+
+    # Initialize lists to hold sentences and their corresponding sarcasm labels.
     sentences = []
     labels = []
-    with open('sarcasm.json', 'r') as file:
-        data = json_load(file)
-        for item in data:
-            sentences.append(item['headline'])
-            labels.append(item['is_sarcastic'])
 
+    # Open the downloaded JSON file for reading.
+    with open('sarcasm.json', 'r') as file:
+        # Load the JSON content.
+        data = json_load(file)
+
+        # Iterate over each record in the dataset, extracting the sentence and its sarcasm label.
+        for item in data:
+            sentences.append(item['headline'])  # Add the sentence to the list.
+            labels.append(item['is_sarcastic'])  # Add the sarcasm label (0 or 1) to the list.
+
+    # Set key parameters for the model and data processing.
     vocab_size = 1000
     max_length = 120
     embedding_dim = 100
     output_dim = 1
+
+    # Obtain a tokenizer for basic English to convert sentences into tokens.
     tokenizer = get_tokenizer("basic_english")
+
+    # Create a vocabulary from the list of sentences with the specified maximum size.
     vocab = create_vocab(sentences, vocab_size)
+
+    # Encode the sentences into sequences of indices based on the vocabulary.
     encoded_sentences = encode_sentences(sentences, vocab, tokenizer)
+
+    # Pad the encoded sequences to ensure they all have the same length.
     padded_sentences = pad_sequences(encoded_sentences, max_length)
+
+    # Convert the labels list into a tensor of type float32.
     labels = torch_tensor(labels, dtype=torch_float32)
 
-    x_train, x_test, y_train, y_test = train_test_split(padded_sentences, labels, test_size=0.2, random_state=42)
+    # Split the padded sentences and labels into training and testing sets.
+    x_train, x_test, y_train, y_test = train_test_split(padded_sentences, labels, test_size=0.1, random_state=42)
 
+    # Create dataset objects for training and testing data.
     train_data = SarcasmDataset(x_train, y_train)
     test_data = SarcasmDataset(x_test, y_test)
 
+    # Initialize DataLoader objects for batching and shuffling the training and testing datasets.
     train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
     val_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 
+    # Initialize the sarcasm detection model with the specified parameters.
     model = SarcasmModel(len(vocab), embedding_dim, output_dim, max_length)
 
+    # Train the model using the training and validation DataLoader objects, on the specified device.
     train_model(model, train_loader, val_loader, input_device)
 
+    # Return the trained model.
     return model
 
 
