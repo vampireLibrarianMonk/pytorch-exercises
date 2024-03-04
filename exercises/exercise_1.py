@@ -1,25 +1,14 @@
-# This line imports specific functionalities from the main PyTorch package. PyTorch is an open-source machine learning
-# library extensively used for deep learning applications. It offers a flexible and powerful platform for building and
-# training neural networks, with core support for multi-dimensional tensors and a wide range of mathematical operations.
+# Importing the PyTorch library, known as `torch`, a powerful and widely used open-source machine learning framework.
+# PyTorch provides tools and libraries for designing, training, and deploying deep learning models with ease. It's
+# particularly known for its flexibility, user-friendly interface, and dynamic computational graph that allows for
+# adaptive and efficient deep learning development. By importing `torch`, you gain access to a vast range of
+# functionalities for handling multi-dimensional arrays (tensors), performing complex mathematical operations,
+# and utilizing GPUs for accelerated computing. This makes it an indispensable tool for both researchers and
+# developers in the field of artificial intelligence.
+import torch
 
-# The specific components imported are:
-# 1. **cuda**: This module is used for all things related to CUDA, NVIDIA's parallel computing platform and API model.
-#    It allows for direct interaction with the GPU for efficient computation, especially beneficial for deep learning
-#    tasks.
-# 2. **device**: This function is utilized to set up the device on which to perform computations
-# (e.g., 'cuda' or 'cpu').
-#    Using 'device', one can write hardware-agnostic code that automatically utilizes GPUs if they're available.
-# 3. **flatten**: A function to flatten a tensor. It collapses a multidimensional tensor into a single dimension,
-#    often used in transitioning from convolutional layers to fully connected layers in a neural network.
-# 4. **no_grad**: This context manager is critical for inference or validation phases, where you do not want operations
-#    to track gradients. It reduces memory usage and speeds up computations.
-# 5. **__version__ as torch_version**: This imports the version identifier of the PyTorch library (aliased as
-#    'torch_version'). It's helpful for compatibility checks or when reporting issues.
-from torch import (cuda, device, float32, load as torch_load, no_grad, save as torch_save, tensor,
-                   version as torch_func_version, __version__ as torch_version)
-
-# This line imports the nn module from PyTorch, aliased as nn. The nn module provides a way of defining a neural
-# network. It includes all the building blocks required to create a neural network, such as layers, activation
+# This line imports the neural network module from PyTorch, aliased as nn. The nn module provides a way of defining a
+# neural network. It includes all the building blocks required to create a neural network, such as layers, activation
 # functions, and other utilities.
 import torch.nn as nn
 
@@ -79,13 +68,13 @@ from subprocess import check_output
 print("Software Versions:")
 
 # CUDA
-if cuda.is_available():
+if torch.cuda.is_available():
     # Print CUDA version
-    print("\tCUDA:", torch_func_version.cuda)
-    device = device("cuda")
+    print("\tCUDA:", torch.torch_func_version.cuda)
+    device = torch.device("cuda")
 else:
     print("\tCUDA is not available.")
-    device = device("cpu")
+    device = torch.device("cpu")
 
 # NVIDIA Driver
 try:
@@ -113,7 +102,7 @@ except Exception as e:
     print("Error fetching NVIDIA Driver Version or CUDA Version:", e)
 
 # Torch
-print("\tPyTorch:", torch_version)
+print("\tPyTorch:", torch.torch_version)
 
 print("\n")
 
@@ -189,7 +178,7 @@ def train_model(model, criterion, optimizer, train_loader, patience=5, n_epochs=
         if epoch_loss < best_loss:
             best_loss = epoch_loss
             patience_counter = 0
-            torch_save(model.state_dict(), 'best_model.pth')  # Save the best model
+            torch.save(model.state_dict(), 'best_model.pth')  # Save the best model
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -217,10 +206,10 @@ def create_dataset():
     # Reshapes the training_range array into a 2D array with a single column using .reshape(-1, 1). Then, it converts
     # this reshaped array into a PyTorch tensor x_train with a data type of float32. x_train represents the input data
     # for the dataset.
-    x_train = tensor(training_range.reshape(-1, 1), dtype=float32)
+    x_train = torch.tensor(training_range.reshape(-1, 1), dtype=torch.float32)
     # Reshapes the test_range array into a 2D array with a single column and converts it into a PyTorch tensor y_train
     # with a data type of float32. y_train represents the target data for the dataset.
-    y_train = tensor(test_range.reshape(-1, 1), dtype=float32)
+    y_train = torch.tensor(test_range.reshape(-1, 1), dtype=torch.float32)
     # Combines the input data (x_train) and target data (y_train) into a PyTorch TensorDataset. This is a
     # PyTorch-specific dataset format that pairs input and target tensors for training.
     train_dataset = TensorDataset(x_train, y_train)
@@ -256,19 +245,22 @@ def main():
     train_model(model, criterion, optimizer, train_loader)
     # Loads the best-trained model's state dictionary from a file named 'best_model.pth' and assigns it to the model.
     # This step is done to use the best model for predictions.
-    model.load_state_dict(torch_load('best_model.pth'))
+    model.load_state_dict(torch.load('best_model.pth'))
 
     # Sets a value for the range of input values for prediction.
     predicted_depth = 100
     # Generates a range of input values (base_x) from -predicted_depth to predicted_depth with a step of 10.
     base_x = np.arange(-predicted_depth, predicted_depth + 1, 10)
-    # Converts the base_x values into a PyTorch tensor (new_x_values) with a data type of float32. These values will be used for making predictions.
-    new_x_values = tensor(base_x.reshape(-1, 1), dtype=float32)
-    # Sets the model to evaluation mode. This is important because some layers (e.g., dropout) behave differently during evaluation.
+    # Converts the base_x values into a PyTorch tensor (new_x_values) with a data type of float32. These values will
+    # be used for making predictions.
+    new_x_values = torch.tensor(base_x.reshape(-1, 1), dtype=torch.float32)
+    # Sets the model to evaluation mode. This is important because some layers (e.g., dropout) behave differently
+    # during evaluation.
     model.eval()  # Set the model to evaluation mode
     # Temporarily disables gradient computation for inference to save memory and computation time.
-    with no_grad():
-        # Uses the trained model to make predictions for the input values in new_x_values. The predicted values are stored in predicted_y.
+    with torch.no_grad():
+        # Uses the trained model to make predictions for the input values in new_x_values. The predicted values are
+        # stored in predicted_y.
         predicted_y = model(new_x_values)
 
     # Prints the input values (base_x) and the corresponding predicted values (predicted_y) in a human-readable format.
@@ -277,7 +269,7 @@ def main():
 
     # Saves the final trained model's state dictionary to a file named '../models/exercise_1_model.pth'. This file can
     # be used later for further use or deployment.
-    torch_save(model.state_dict(), "../models/exercise_1_model.pth")
+    torch.save(model.state_dict(), "../models/exercise_1_model.pth")
 
 
 if __name__ == '__main__':

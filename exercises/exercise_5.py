@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+
 # Function to normalize the series
 def normalize_series(series):
     min_val = np.min(series)
@@ -117,4 +118,3 @@ if __name__ == "__main__":
     plt.ylabel("Temperature")
     plt.legend()
     plt.show()
-

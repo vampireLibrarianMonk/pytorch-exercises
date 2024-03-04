@@ -1,4 +1,14 @@
+# IDE Related
 .idea
+
+# Model training related
 *.pth
+
+# Data related
 data
 sarcasm.json
+
+# Archive related
+*.tar
+*.tar.gz
+*.zip
