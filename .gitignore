@@ -5,10 +5,11 @@
 *.pth
 
 # Data related
-data
+**/data/*
 sarcasm.json
 
 # Archive related
 *.tar
 *.tar.gz
 *.zip
+*.gz

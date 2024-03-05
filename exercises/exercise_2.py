@@ -21,18 +21,14 @@ from subprocess import check_output
 # library extensively used for deep learning applications. It offers a flexible and powerful platform for building and
 # training neural networks, with core support for multi-dimensional tensors and a wide range of mathematical operations.
 
-# cuda: Used for operations related to CUDA, NVIDIA's parallel computing platform, enabling efficient GPU computations.
-from torch import cuda
-
-# device: Function to specify the computation device (GPU or CPU), allowing for hardware-agnostic code.
-from torch import device as torch_device
-
-# no_grad: This context manager is critical for inference or validation phases, where you do not want operations to
-# track gradients. It reduces memory usage and speeds up computations.
-from torch import no_grad
-
-# version: Provides access to the version of the PyTorch being used, useful for compatibility and debugging purposes.
-from torch import version as torch_func_version
+# Importing the PyTorch library, known as `torch`, a powerful and widely used open-source machine learning framework.
+# PyTorch provides tools and libraries for designing, training, and deploying deep learning models with ease. It's
+# particularly known for its flexibility, user-friendly interface, and dynamic computational graph that allows for
+# adaptive and efficient deep learning development. By importing `torch`, you gain access to a vast range of
+# functionalities for handling multi-dimensional arrays (tensors), performing complex mathematical operations,
+# and utilizing GPUs for accelerated computing. This makes it an indispensable tool for both researchers and
+# developers in the field of artificial intelligence.
+import torch
 
 # This line imports the nn module from PyTorch, aliased as nn. The nn module provides a way of defining a neural
 # network. It includes all the building blocks required to create a neural network, such as layers, activation
@@ -49,10 +45,10 @@ import torch.optim as optim
 # multiprocessing, and more, thus providing an efficient way to iterate over data.
 from torch.utils.data import DataLoader
 
-# This line imports a package in the PyTorch library that consists of popular datasets, model architectures, and common
-# image transformations for computer vision. This line imports two submodules: datasets for accessing various standard
-# datasets and transforms for performing data preprocessing and augmentation operations on images.
-from torchvision import datasets, transforms, __version__ as torchvision_version
+# A toolbox for computer vision tasks in Python. It includes:
+# 1. 'datasets' for accessing a variety of pre-prepared image collections for training models.
+# 2. 'transforms' for editing and adjusting images (like resizing or color changes) to improve model learning.
+import torchvision
 
 # This imports the StepLR class from the lr_scheduler submodule in optim. Learning rate schedulers adjust the learning
 # rate during training, which can lead to more effective and faster training. StepLR decreases the learning rate at
@@ -188,7 +184,7 @@ class FashionMNISTModel(nn.Module):
         x = nn.functional.max_pool2d(x, 2)  # Apply max pooling
 
         # Flatten Layer
-        x = flatten(x, 1)  # Flatten the 2D feature maps into a 1D vector
+        x = torch.flatten(x, 1)  # Flatten the 2D feature maps into a 1D vector
 
         # Dropout Layer 2
         x = self.dropout2(x)  # Apply a different dropout layer with 50% probability
@@ -207,43 +203,42 @@ class FashionMNISTModel(nn.Module):
 # loss. It's a fundamental process in machine learning and deep learning, allowing models to improve their performance
 # over time through optimization.
 def train(model, device, train_loader, optimizer, epoch, criterion):
-    #  Sets the model in training mode. This is important because some layers, like dropout or batch normalization,
-    #  behave differently during training and inference. Setting the model to training mode ensures that these layers
-    #  are active during training.
+    # Sets the model to training mode. Important for layers like dropout and batch normalization to work correctly
+    # during training.
     model.train()
 
-    # Iterates over the batches of data provided by the train_loader. In each iteration:
-    # batch_idx: An index representing the current batch number.
-    # (data, target): A tuple containing a batch of input data and its corresponding target labels.
+    # Calculate the total number of batches in the train_loader to determine progress intervals.
+    total_batches = len(train_loader)
+    # Calculate what constitutes 10% of total batches for progress updates.
+    ten_percent_batches = total_batches / 10
+    # Create a list of batch indices where each represents a 10% progress milestone.
+    milestones = [int(ten_percent_batches * i) for i in range(1, 11)]
+
+    # Start iterating over the training data in batches.
     for batch_idx, (data, target) in enumerate(train_loader):
-        # Moves both the input data and target labels to the specified device (CPU or GPU).
-        # This is necessary for compatibility between the device and the model.
+        # Transfer the data and target to the current device (GPU or CPU), ensuring compatibility.
         data, target = data.to(device), target.to(device)
-        # This line clears the gradients of the model's parameters. Gradients are accumulated during the backward pass,
-        # so it's important to reset them at the beginning of each batch.
+        # Reset gradients to zero before starting to do backpropragation because gradients accumulate by default.
         optimizer.zero_grad()
-        # Passes the batch of input data through the neural network model to obtain predictions (output) for the current
-        # batch.
+        # Forward pass: compute the model output for the current batch of data.
         output = model(data)
-        # Computes the loss between the model's predictions (output) and the target labels (target). The criterion is
-        # typically a loss function, like cross-entropy loss.
+        # Compute the loss between the model's predictions and the actual target values.
         loss = criterion(output, target)
-        # Computes the gradients of the model's parameters with respect to the loss. Backpropagation is used to
-        # calculate these gradients, enabling parameter updates during optimization.
+        # Backward pass: compute gradient of the loss with respect to model parameters.
         loss.backward()
-        # It updates the model's parameters using the computed gradients and the optimization algorithm (e.g.,
-        # stochastic gradient descent). This step is where the actual learning takes place.
+        # Perform a single optimization step (parameter update).
         optimizer.step()
 
-        # Prints training progress information every 10 batches. It displays the current epoch, the number of processed
-        # samples, the total dataset size, the percentage of completion, and the current batch's loss.
-        if batch_idx % 10 == 0:
+        # Check if the current batch index matches any of the predefined milestones for 10% increments.
+        if batch_idx in milestones:
+            # Print the training progress, including epoch, number of samples processed, total number of samples,
+            # percentage of progress, and the current loss value.
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                       100. * batch_idx / len(train_loader), loss.item()))
+                100. * batch_idx / len(train_loader), loss.item()))
 
 
-# SECTION 3: DATASET CREATION
+# SECTION 3: Testing Function
 # ----------------------------------------------------------------------------------------------------------------------
 # Testing loop
 # Evaluates the model's performance on a separate dataset not used for training. During testing, the model is set to
@@ -259,7 +254,7 @@ def test(model, device, test_loader, criterion):
     correct = 0
     # This context manager is used to temporarily disable gradient calculation. During testing, we don't need to compute
     # gradients because we are not updating the model's weights. This can significantly speed up the evaluation process
-    with no_grad():
+    with torch.no_grad():
         # Iterates through the test dataset using the data loader. It loads a batch of test data along with their
         # corresponding target labels.
         for data, target in test_loader:
@@ -303,9 +298,9 @@ def create(device):
     #   subtracts the mean value o from each pixel and then divides by the standard deviation. This process scales the
     #   pixel values to be in the range of -1 to 1, which can help improve the training of neural networks by making the
     #   data more centered around zero.
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
+    transform = torchvision.transforms.Compose([
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize((0.5,), (0.5,))
     ])
 
     # Load and prepare the FashionMNIST dataset for both training and testing in a PyTorch-based deep learning model.
@@ -315,12 +310,12 @@ def create(device):
     #   images and labels. When set to False, it would create a dataset for testing, including test images and labels.
     # * transform=transform: Dataset images will undergo the transformations defined in transform, including converting
     # them to tensors and normalizing their pixel values.
-    train_dataset = datasets.FashionMNIST('../data',
+    train_dataset = torchvision.datasets.FashionMNIST('../data',
                                           train=True,
                                           download=True,
                                           transform=transform
                                           )
-    test_dataset = datasets.FashionMNIST('../data',
+    test_dataset = torchvision.datasets.FashionMNIST('../data',
                                          train=False,
                                          transform=transform
                                          )
@@ -363,13 +358,13 @@ def main():
     print("Software Versions:")
 
     # CUDA
-    if cuda.is_available():
+    if torch.cuda.is_available():
         # Print CUDA version
-        print("\tCUDA:", torch_func_version.cuda)
-        device = torch_device("cuda")
+        print("\tCUDA:", torch.version.cuda)
+        device = torch.device("cuda")
     else:
         print("\tCUDA is not available.")
-        device = torch_device("cpu")
+        device = torch.device("cpu")
 
     # NVIDIA Driver
     try:
@@ -397,26 +392,26 @@ def main():
         print("Error fetching NVIDIA Driver Version or CUDA Version:", e)
 
     # Torch
-    print("\tPyTorch:", torch_version)
+    print("\tPyTorch:", torch.version)
 
     # TorchVision
-    print("\tTorchvision:", torchvision_version)
+    print("\tTorchvision:", torchvision.version)
 
     print("Hardware Found:")
 
     # Check if CUDA is available
-    if cuda.is_available():
+    if torch.cuda.is_available():
         # Get the number of CUDA devices
-        num_devices = cuda.device_count()
+        num_devices = torch.cuda.device_count()
 
         print(f"\tNumber of CUDA devices available: {num_devices}")
 
         # Loop through all available devices
         for device_id in range(num_devices):
             # Get the name of the device
-            device_name = cuda.get_device_name(device_id)
+            device_name = torch.cuda.get_device_name(device_id)
             # Get the properties of the device
-            device_properties = cuda.get_device_properties(device_id)
+            device_properties = torch.cuda.get_device_properties(device_id)
             # Extract the total memory of the device and convert bytes to GB
             total_memory_gb = device_properties.total_memory / (1024 ** 3)
 
