@@ -8,3 +8,4 @@ dependencies:
       - notebook
       - scikit-learn
       - torch~=2.0
+      - torchtext~=0.16

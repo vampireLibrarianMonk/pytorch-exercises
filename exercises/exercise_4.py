@@ -34,47 +34,14 @@ from sklearn.model_selection import train_test_split
 # output = check_output(['ls', '-l'])
 from subprocess import check_output
 
-# cuda from torch: Provides access to CUDA (Compute Unified Device Architecture) tensors and operations,
-# allowing for tensor computations on NVIDIA GPUs for accelerated computing.
-from torch import cuda as torch_cuda
-
-# device from torch: A context manager or a device object used to specify the device (CPU or GPU) on which tensors
-# are allocated and operations are performed. It's essential for directing computations to specific hardware.
-from torch import device as torch_device
-
-# The specific components imported are:
-# 2. **device**: This function is utilized to set up the device on which to perform computations
-# (e.g., 'cuda' or 'cpu').
-from torch import device as torch_device
-
-# float32 from torch: Specifies the data type for tensors as 32-bit floating points.
-# This data type is commonly used for storing tensor values, especially when precision is balanced with memory
-# efficiency.
-from torch import float as torch_float32
-
-# no_grad from torch: A context manager that disables gradient calculation, making code run faster and reducing memory
-# usage by not keeping track of operations that require gradients. This is typically used during inference.
-from torch import no_grad
-
-# sigmoid from torch: Provides the Sigmoid activation function, which is widely used in binary classification problems
-# and neural network layers for introducing non-linearity.
-from torch import sigmoid
-
-# long from torch: Specifies the data type for tensors as long integers (64-bit). This is often used for tensors
-# that store indices or counts.
-from torch import long as torch_long
-
-# tensor from torch: A function to create a tensor object in PyTorch, which is a multi-dimensional matrix containing
-# elements of a single data type. Tensors are fundamental to PyTorch operations and models.
-from torch import tensor as torch_tensor
-
-# __version__ as torch_version**: This imports the version identifier of the PyTorch library (aliased as
-#    'torch_version'). It's helpful for compatibility checks or when reporting issues.
-from torch import version as torch_func_version, __version__ as torch_version
-
-# zeros from torch: A function to create a tensor filled with zeros. This is useful for initializing weights or
-# creating tensors with a specific shape as placeholders.
-from torch import zeros as torch_zeroes
+# Importing the PyTorch library, known as `torch`, a powerful and widely used open-source machine learning framework.
+# PyTorch provides tools and libraries for designing, training, and deploying deep learning models with ease. It's
+# particularly known for its flexibility, user-friendly interface, and dynamic computational graph that allows for
+# adaptive and efficient deep learning development. By importing `torch`, you gain access to a vast range of
+# functionalities for handling multi-dimensional arrays (tensors), performing complex mathematical operations,
+# and utilizing GPUs for accelerated computing. This makes it an indispensable tool for both researchers and
+# developers in the field of artificial intelligence.
+import torch
 
 # nn from torch: Provides the building blocks for creating neural networks, including layers, activation functions,
 # and loss functions. It's a foundational module for defining and assembling neural network architectures.
@@ -201,7 +168,7 @@ def pad_sequences(sequences, max_length):
     # Create a tensor of zeros with the shape (number of sequences, max_length). This tensor will hold the padded
     # sequences.
     # The dtype=torch_long specifies that the elements of the tensor are long integers, suitable for holding indices.
-    padded_sequences = torch_zeroes((len(sequences), max_length), dtype=torch_long)
+    padded_sequences = torch.zeros((len(sequences), max_length), dtype=torch.long)
 
     # Enumerate over the list of sequences to get both the index (i) and the sequence itself (seq) for each sequence in
     # the list.
@@ -216,7 +183,7 @@ def pad_sequences(sequences, max_length):
         # ensuring that the data type is still long integer. The tensor is then assigned to the first 'length' positions
         # in the ith row of padded_sequences, effectively padding the sequence with zeros if it is shorter than
         # max_length.
-        padded_sequences[i, :length] = torch_tensor(seq[:length], dtype=torch_long)
+        padded_sequences[i, :length] = torch.tensor(seq[:length], dtype=torch.long)
 
     # After processing all sequences, return the tensor containing all the padded sequences.
     return padded_sequences
@@ -295,7 +262,7 @@ class SarcasmModel(nn.Module):
 
         # Apply the sigmoid activation function to the output of the second fully connected layer to get the final model
         # output.
-        x = sigmoid(self.fc2(x))
+        x = torch.sigmoid(self.fc2(x))
 
         # Return the final output.
         return x
@@ -358,7 +325,7 @@ def train_model(model, train_loader, val_loader, device, epochs=10):
         correct = 0
 
         # Disable gradient computation since it's not needed for validation, which saves memory and computations.
-        with no_grad():
+        with torch.no_grad():
             # Iterate over the validation data.
             for inputs, labels in val_loader:
                 # Transfer the inputs and labels to the specified device.
@@ -422,7 +389,7 @@ def create_model(input_device):
     padded_sentences = pad_sequences(encoded_sentences, max_length)
 
     # Convert the labels list into a tensor of type float32.
-    labels = torch_tensor(labels, dtype=torch_float32)
+    labels = torch.tensor(labels, dtype=torch.float32)
 
     # Split the padded sentences and labels into training and testing sets.
     x_train, x_test, y_train, y_test = train_test_split(padded_sentences, labels, test_size=0.1, random_state=42)
@@ -449,13 +416,13 @@ if __name__ == '__main__':
     print("Software Versions:")
 
     # CUDA
-    if torch_cuda.is_available():
+    if torch.cuda.is_available():
         # Print CUDA version
-        print("\tCUDA:", torch_func_version.cuda)
-        device = torch_device("cuda")
+        print("\tCUDA:", torch.version.cuda)
+        device = torch.device("cuda")
     else:
         print("\tCUDA is not available.")
-        device = torch_device("cpu")
+        device = torch.device("cpu")
 
     # NVIDIA Driver
     try:
@@ -483,7 +450,7 @@ if __name__ == '__main__':
         print("Error fetching NVIDIA Driver Version or CUDA Version:", e)
 
     # Torch
-    print("\tPyTorch:", torch_version)
+    print("\tPyTorch:", torch.__version__)
 
     print("\n")
 
