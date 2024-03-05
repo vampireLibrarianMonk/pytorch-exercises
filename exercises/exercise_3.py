@@ -1,10 +1,30 @@
 # German Traffic Sign Recognition Benchmark GTSRB
 # https://sid.erda.dk/public/archives/daaeac0d7ce1152aea9b61d9f1e19370/published-archive.html
 
+# The 'matplotlib.pyplot' is a collection of functions in the 'matplotlib' library that make matplotlib work like
+# MATLAB. Each pyplot function makes some change to a figure: e.g., creates a figure, creates a plotting area in a
+# figure, plots some lines in a plotting area, decorates the plot with labels, etc. 'plt' is a commonly used
+# shorthand alias for 'matplotlib.pyplot'. This allows you to access matplotlib's plotting functions with shorter
+# syntax - for example, you can type 'plt.plot()' instead of 'matplotlib.pyplot.plot()'. This import is essential for
+# data visualization, allowing you to create a wide variety of static, animated, and interactive plots and charts in
+# Python.
+import matplotlib.pyplot as plt
+
+# The os module in Python provides a way of using operating system dependent functionality. It allows you to
+# interface with the underlying operating system that Python is running on – be it Windows, Mac or Linux. You can use
+# the os module to handle file and directory paths, create folders, list contents of a directory, manage environment
+# variables, execute shell commands, and more.
+import os
+
 # random: This module implements pseudo-random number generators for various distributions. It is used here to randomly
 # select a subset of data (e.g., images from a dataset) for tasks like creating a validation set, shuffling data,
 # or in this context, for randomly choosing images to visualize model predictions.
 import random
+
+# The 'requests' library is the de facto standard for making HTTP requests in Python. It abstracts the complexities of
+# making requests behind a beautiful, simple API, so that you can focus on interacting with services and consuming data
+# in your application. It's used here for downloading the dataset from a given URL.
+import requests
 
 # This line imports the 'check_output' function from the 'subprocess' module in Python. The 'subprocess' module
 # allows you to spawn new processes, connect to their input/output/error pipes, and obtain their return codes. This
@@ -24,29 +44,14 @@ import random
 # output = check_output(['ls', '-l'])
 from subprocess import check_output
 
-# PyTorch
-# This line imports specific functionalities from the main PyTorch package. PyTorch is an open-source machine learning
-# library extensively used for deep learning applications. It offers a flexible and powerful platform for building and
-# training neural networks, with core support for multi-dimensional tensors and a wide range of mathematical operations.
-
-# cuda: Used for operations related to CUDA, NVIDIA's parallel computing platform, enabling efficient GPU computations.
-from torch import cuda
-
-# device: Function to specify the computation device (GPU or CPU), allowing for hardware-agnostic code.
-from torch import device as torch_device
-
-# max: Function to compute the maximum value of a tensor, useful in various tensor operations and model outputs
-# processing.
-from torch import max as torch_max
-
-# no_grad: This context manager is critical for inference or validation phases, where you do not want operations to
-# track gradients. It reduces memory usage and speeds up computations.
-from torch import no_grad
-
-# torch.stack: This function is used to concatenate a sequence of tensors along a new dimension. All tensors need to be
-# of the same size. It's often used to create a batch of tensors from multiple single instances, which is useful when
-# you want to pass multiple inputs through a model simultaneously.
-from torch import stack as torch_stack
+# Importing the PyTorch library, known as `torch`, a powerful and widely used open-source machine learning framework.
+# PyTorch provides tools and libraries for designing, training, and deploying deep learning models with ease. It's
+# particularly known for its flexibility, user-friendly interface, and dynamic computational graph that allows for
+# adaptive and efficient deep learning development. By importing `torch`, you gain access to a vast range of
+# functionalities for handling multi-dimensional arrays (tensors), performing complex mathematical operations,
+# and utilizing GPUs for accelerated computing. This makes it an indispensable tool for both researchers and
+# developers in the field of artificial intelligence.
+import torch
 
 # torch.save: Function for saving a serialized representation of an object (model state dictionary, entire model,
 # tensors, etc.) to a file, using Python's pickle utility. It's commonly used to save trained model weights for later
@@ -72,30 +77,15 @@ import torch.nn.functional as F
 # and RMSprop. These algorithms are used to update the weights of the network during training.
 import torch.optim as optim
 
-# This line imports a package in the PyTorch library that consists of popular datasets, model architectures, and common
-# image transformations for computer vision. This line imports two submodules: datasets for accessing various standard
-# datasets and transforms for performing data preprocessing and augmentation operations on images.
-from torchvision import datasets, transforms, __version__ as torchvision_version
+# A toolbox for computer vision tasks in Python. It includes:
+# 1. 'datasets' for accessing a variety of pre-prepared image collections for training models.
+# 2. 'transforms' for editing and adjusting images (like resizing or color changes) to improve model learning.
+import torchvision
 
 # This imports the DataLoader class from PyTorch's utility functions. DataLoader is essential for loading the data and
 # feeding it into the network in batches. It offers the ability to shuffle the data, load it in parallel using
 # multiprocessing, and more, thus providing an efficient way to iterate over data.
 from torch.utils.data import DataLoader
-
-# matplotlib.pyplot: A collection of functions that make matplotlib work like MATLAB, used for creating static,
-# interactive, and animated visualizations in Python. 'plt' is a commonly used shorthand for 'matplotlib.pyplot'.
-import matplotlib.pyplot as plt
-
-# The 'os' module in Python provides a way of using operating system dependent functionality. It allows you to interact
-# with the underlying operating system in several ways, like traversing the file system, obtaining the current
-# directory, performing operations on file paths, and more. It's used here to manage file paths and directories, such
-# as creating a directory for data storage or checking if a directory exists.
-import os
-
-# The 'requests' library is the de facto standard for making HTTP requests in Python. It abstracts the complexities of
-# making requests behind a beautiful, simple API, so that you can focus on interacting with services and consuming data
-# in your application. It's used here for downloading the dataset from a given URL.
-import requests
 
 # The 'zipfile' module in Python is used for reading and writing ZIP files. It allows you to create, read, write,
 # append, and list ZIP files. In this context, it's used to extract the downloaded dataset, which is assumed to be in a
@@ -121,13 +111,13 @@ def version_print():
     print("Software Versions:")
 
     # CUDA
-    if cuda.is_available():
+    if torch.cuda.is_available():
         # Print CUDA version
         print("\tCUDA:", torch_func_version.cuda)
-        device = torch_device("cuda")
+        device = torch.device("cuda")
     else:
         print("\tCUDA is not available.")
-        device = torch_device("cpu")
+        device = torch.device("cpu")
 
     # NVIDIA Driver
     try:
@@ -158,23 +148,23 @@ def version_print():
     print("\tPyTorch:", torch_version)
 
     # TorchVision
-    print("\tTorchvision:", torchvision_version)
+    print("\tTorchvision:", torchvision.version)
 
     print("\nHardware Found:")
 
     # Check if CUDA is available
-    if cuda.is_available():
+    if torch.cuda.is_available():
         # Get the number of CUDA devices
-        num_devices = cuda.device_count()
+        num_devices = torch.cuda.device_count()
 
         print(f"\tNumber of CUDA devices available: {num_devices}")
 
         # Loop through all available devices
         for device_id in range(num_devices):
             # Get the name of the device
-            device_name = cuda.get_device_name(device_id)
+            device_name = torch.cuda.get_device_name(device_id)
             # Get the properties of the device
-            device_properties = cuda.get_device_properties(device_id)
+            device_properties = torch.cuda.get_device_properties(device_id)
             # Extract the total memory of the device and convert bytes to GB
             total_memory_gb = device_properties.total_memory / (1024 ** 3)
 
@@ -310,19 +300,19 @@ def download_and_extract_data(url, data_path='data'):
 
 # Preprocess function adapted for PyTorch
 def preprocess(img_shape=30):
-    return transforms.Compose([
-        transforms.Resize((img_shape, img_shape)),  # Resize images to a consistent size
-        transforms.ToTensor(),  # Convert images to PyTorch tensors
-        transforms.Normalize((0.5,), (0.5,))  # Normalize the tensors
+    return torchvision.transforms.Compose([
+        torchvision.transforms.Resize((img_shape, img_shape)),  # Resize images to a consistent size
+        torchvision.transforms.ToTensor(),  # Convert images to PyTorch tensors
+        torchvision.transforms.Normalize((0.5,), (0.5,))  # Normalize the tensors
     ])
 
 
 def create_datasets(data_path, transform):
     # Load images from the training directory and apply preprocessing transformations
-    train_dataset = datasets.ImageFolder(root=os.path.join(data_path, 'train'), transform=transform)
+    train_dataset = torchvision.datasets.ImageFolder(root=os.path.join(data_path, 'train'), transform=transform)
 
     # Load images from the validation directory and apply the same transformations
-    test_dataset = datasets.ImageFolder(root=os.path.join(data_path, 'validation'), transform=transform)
+    test_dataset = torchvision.datasets.ImageFolder(root=os.path.join(data_path, 'validation'), transform=transform)
 
     return train_dataset, test_dataset
 
@@ -350,7 +340,7 @@ def evaluate_model(model, device, test_loader):
     test_loss = 0
     correct = 0
 
-    with no_grad():  # Disable gradient computation
+    with torch.no_grad():  # Disable gradient computation
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
@@ -383,11 +373,11 @@ def visualize_predictions(model, device, test_loader, num_images=5):
         sampled_labels.append(label)
 
     # Stack the list of images into a batch and transfer to the device
-    image_batch = torch_stack(sampled_images).to(device)
+    image_batch = torch.stack(sampled_images).to(device)
 
     # Generate predictions from the model by passing the batch of images through it
     output = model(image_batch)
-    _, preds = torch_max(output, 1)
+    _, preds = torch.max(output, 1)
 
     # Create a new figure with specified width and height
     plt.figure(figsize=(15, 3))
@@ -426,7 +416,7 @@ def main():
     train_loader, test_loader = create_data_loaders(train_dataset, test_dataset)
 
     # Set the computation device
-    device = torch_device("cuda" if cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize the model and transfer it to the computation device
     model = TrafficSignNet().to(device)

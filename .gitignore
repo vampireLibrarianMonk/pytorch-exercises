@@ -13,3 +13,13 @@ sarcasm.json
 *.tar.gz
 *.zip
 *.gz
+
+# Images
+*.jpeg
+*.jpg
+*.png
+*.tiff
+*.tif
+
+# other
+LICENSE.txt
