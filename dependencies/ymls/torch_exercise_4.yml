@@ -1,0 +1,10 @@
+name: torch_exercise_4
+channels:
+  - conda-forge
+dependencies:
+  - pip
+  - python=3.10
+  - pip:
+      - notebook
+      - scikit-learn
+      - torch~=2.0
