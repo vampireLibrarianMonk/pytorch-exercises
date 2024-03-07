@@ -1,0 +1,11 @@
+name: torch_exercise_5
+channels:
+  - conda-forge
+dependencies:
+  - pip
+  - python=3.10
+  - pip:
+      - matplotlib
+      - notebook
+      - pandas
+      - torch~=2.0
